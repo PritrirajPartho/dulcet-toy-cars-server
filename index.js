@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -33,6 +33,13 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     })
+
+    app.get('/toys/:id', async(req, res) => {
+      const id = req.params.id;
+      const query  = {_id: new ObjectId(id)}
+      const result = await toysCollection.findOne(query);
+      res.send(result);
+     })
     
     app.get('/mytoys', async (req, res) => {
       let query = {};
@@ -50,6 +57,23 @@ async function run() {
       res.send(result);
     });
 
+    app.put('/toys/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter  = {_id: new ObjectId(id)};
+      const options = { upsert: true };
+      // create a document that sets the plot of the movie
+      const updateToy = req.body;
+      const updateDoc = {
+          $set: {
+            name: updateToy.name,
+            quantity: updateToy.quantity,
+            price: updateToy.price,
+            description: updateToy.description
+          },
+      };
+      const result = await toysCollection.updateOne(filter, updateDoc, options);
+      res.send(result)
+    })
 
 
     // Send a ping to confirm a successful connection
