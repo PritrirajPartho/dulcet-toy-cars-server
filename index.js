@@ -6,7 +6,7 @@ require('dotenv').config()
 const port = process.env.PORT || 5000;
 
 // Middleware is here
-app.use(cors());
+app.use(cors())
 app.use(express.json());
 // -------------------------------------------------------------
 
@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-     client.connect();
+    await client.connect();
 
     const toysCollection = client.db('toysDB').collection('toy');
 
@@ -50,6 +50,11 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/alltoys/:category', async (req, res) => {
+      const toys = await toysCollection.find({category: req.params.category}).toArray();
+      res.send(toys)
+    })
+
     app.post('/toys', async (req, res) => {
       const toy = req.body;
       console.log(toy);
@@ -73,6 +78,13 @@ async function run() {
       };
       const result = await toysCollection.updateOne(filter, updateDoc, options);
       res.send(result)
+    })
+
+    app.delete('/toys/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await toysCollection.deleteOne(query);
+      res.send(result);
     })
 
 
